@@ -1,5 +1,5 @@
 {
-  "name": "poker",
+  "name": "planing-batak",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,19 +9,33 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "cors": "^2.8.5",
+    "daisyui": "^1.24.3",
+    "express": "^4.17.2",
+    "nodemon": "^2.0.15",
+    "pusher-js": "^7.0.3",
+    "socket.io": "^4.4.1",
+    "socket.io-client": "^4.4.1",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
+    "vue-uuid": "^2.0.2",
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
+    "@socket.io/admin-ui": "^0.2.0",
+    "@tailwindcss/postcss7-compat": "^2.2.17",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-plugin-vuex": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "@vue/compiler-sfc": "^3.0.0",
+    "autoprefixer": "^9",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^7.0.0"
+    "eslint-plugin-vue": "^7.0.0",
+    "postcss": "^7",
+    "prettier": "2.5.1",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat"
   }
 }

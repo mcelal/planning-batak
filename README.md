@@ -1,4 +1,4 @@
-# poker
+# planing batak
 
 ## Project setup
 ```
