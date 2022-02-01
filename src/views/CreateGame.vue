@@ -3,11 +3,13 @@
     <div class="flex justify-center px-4 py-16 bg-base-200">
       <div class="p-10 card bg-base-200">
         <div class="form-control mb-3">
-          <a href="http://localhost:8080/play-game/a7e19c80-8081-11ec-a686-0f85ad634a98">SHORT</a>
-          <label class="label">
-            Oda Adı
-          </label>
-          <input type="text" v-model="props.form.roomName" placeholder="Oda adı" class="input" :class="{'input-error': props.form.roomName.length === 0}">
+          <input
+              type="text"
+              v-model="props.form.roomName"
+              placeholder="Oda adını giriniz"
+              class="input input-lg"
+              :class="{'input-error': props.form.roomName.length === 0}"
+          >
           <label class="label" v-if="props.form.roomName.length === 0">
             <span class="label-text-alt">Bir isim girmelisiniz</span>
           </label>
@@ -23,7 +25,9 @@
           </select>
         </div>
 
-        <button class="btn btn-primary mt-5" @click="createGame" :disabled="props.form.roomName.length === 0">Oluştur</button>
+        <button class="btn btn-primary mt-5" @click="createGame" :disabled="props.form.roomName.length === 0">
+          Oluştur
+        </button>
       </div>
     </div>
   </div>
@@ -34,7 +38,6 @@ import {reactive} from "vue";
 import {useRouter} from "vue-router";
 import {io} from "socket.io-client";
 import {uuid} from "vue-uuid"
-
 
 const router = useRouter()
 const socket = io('localhost:3000')
@@ -49,9 +52,6 @@ const props = reactive({
 
 const createGame = () => {
   socket.emit("create-game", props.form)
-  // socket.on('game-' + props.form.uuid, gameRoom => {
-  //   router.push({name: 'PlayGame', params: {uuid: gameRoom.game_id}})
-  // })
 
   router.push({name: 'PlayGame', params: {uuid: props.form.uuid}})
 }

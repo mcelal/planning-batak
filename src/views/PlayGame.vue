@@ -1,54 +1,76 @@
 <template>
-  <div class="mockup-window bg-base-300">
-    <div class="flex justify-center px-4 py-16 bg-base-200">
+  <h1 class="text-3xl text-center">{{ state.room.name }}</h1>
+  <div class="p-4 lg:p-10">
+    <div class="card col-span-1 row-span-3 shadow-lg xl:col-span-2 bg-base-300">
+      <div class="card-body">
+        <span class="font-mono text-6xl countdown justify-center" v-if="state.showCountdown">
+          <span :style="`--value:${state.waiting}`"></span>
+        </span>
 
-      <div id="join" v-if="mode === 'join'">
-        <join-game/>
-      </div> <!-- /join -->
+        <template v-if="mode === 'join'">
+          <h2 class="my-4 text-4xl font-bold card-title">Başlamaya Hazırlanın !</h2>
+          <join-game/>
+        </template>
 
-      <div id="play" v-if="mode === 'play'">
-        <h1>ORTALAMA: {{ state.avg }}</h1>
-        <pre>{{ state.room }}</pre>
-        <div class="avatar placeholder" v-for="(people, key) in state.room.users" :key="key">
-          <div class="bg-neutral-focus text-neutral-content rounded text-xs p-3 m-4 w-20 h-32 flex-col">
-            <span class="text-2xl">{{ people.name }}</span>
-            <p>{{ people.name }}</p>
-            <p>{{ showIdea(people.idea) }}</p>
-          </div>
-        </div>
-        <div class="m-4 align-center">
-          <div class="btn-group">
-            <input type="radio" name="options" id="option" v-model="state.selectNumber" value="" data-title="-" class="btn">
-            <input type="radio" name="options" id="option1" v-model="state.selectNumber" value="?" data-title="?" class="btn">
-            <input type="radio" name="options" id="option2" v-model="state.selectNumber" value="1" data-title="1" class="btn">
-            <input type="radio" name="options" id="option3" v-model="state.selectNumber" value="2" data-title="2" class="btn">
-            <input type="radio" name="options" id="option4" v-model="state.selectNumber" value="3" data-title="3" class="btn">
-            <input type="radio" name="options" id="option5" v-model="state.selectNumber" value="5" data-title="5" class="btn">
-            <input type="radio" name="options" id="option8" v-model="state.selectNumber" value="8" data-title="8" class="btn">
-            <input type="radio" name="options" id="option13" v-model="state.selectNumber" value="13" data-title="13" class="btn">
-            <input type="radio" name="options" id="option21" v-model="state.selectNumber" value="21" data-title="21" class="btn">
-            <input type="radio" name="options" id="option34" v-model="state.selectNumber" value="34" data-title="34" class="btn">
+        <template v-else>
+          <h2 class="my-4 text-4xl font-bold card-title" v-if="state.room.status === 'playing'">Oyun Devam Ediyor !</h2>
+          <h2 class="my-4 text-4xl font-bold card-title" v-if="state.room.status === 'finished' && ! state.showCountdown && state.avg !== 0">Ortalama: {{ state.avg }}</h2>
+
+          <div class="flex flex-row flex-wrap gap-2 justify-center mt-4">
+            <div class="text-center" v-for="(people, key) in state.room.users" :key="key" style="width: 120px">
+              <playing-card :number="showIdea(people.idea)"/>
+              <p class="font-medium text-lg pt-2">{{ people.name }}</p>
+            </div>
           </div>
 
-          <button class="btn btn-primary btn-lg" @click="finishGame" v-if="state.room.status === 'playing'">BİTİR</button>
-          <button class="btn btn-primary btn-lg" @click="newGame" v-else>BAŞLAT</button>
-        </div>
-      </div> <!-- /play -->
+          <div class="justify-center space-x-2 card-actions">
+            <button
+                class="btn btn-primary btn-lg"
+                @click="finishGame"
+                v-if="! state.showCountdown && state.room.status === 'playing'">
+              BİTİR
+            </button>
+            <button
+                class="btn btn-primary btn-lg"
+                @click="newGame"
+                v-if="! state.showCountdown && state.room.status === 'finished'">
+              BAŞLAT
+            </button>
+          </div>
+        </template>
+      </div>
     </div>
-  </div><!-- /window -->
+  </div>
+
+  <div class="absolute bottom-0 left-0 px-3 h-44 w-full" v-if="mode === 'play'">
+    <div class="flex flex-row flex-wrap gap-2 justify-center">
+      <playing-card
+          v-for="number in numbers.filter(i => i !== '')"
+          :key="number"
+          :number="number.toString()"
+          class="play-card"
+          :class="{'play-card-selected': state.selectNumber === number}"
+          @click="setCard(number)"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup>
 import {computed, reactive, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
+import {useStore} from "vuex";
 import {io} from "socket.io-client";
 import JoinGame from "@/components/JoinGame.vue";
-import {useStore} from "vuex";
+import PlayingCard from "@/components/PlayingCard.vue";
+
 
 const route = useRoute();
 const router = useRouter();
-const socket = io('localhost:3000')
+const socket = io('192.168.1.200:3000')
 const store = useStore()
+
+const numbers = ['', '?', '1', '2', '3', '5', '8', '13', '21', '34', '55', '89'];
 
 const state = reactive({
   mode: "join",
@@ -56,24 +78,47 @@ const state = reactive({
     uuid: null,
     name: null,
     users: [],
-    status: "playing",
+    status: "finished",
   },
-  selectNumber: null,
-  avg: 0
+  selectNumber: '',
+  avg: 0,
+  waiting: 5,
+  showCountdown: false
 })
 
 socket.on("connect", () => {
-  console.log("socket bağlandım")
+  console.log("socket bağlandı")
 })
 
 socket.on("welcome-room", payload => {
   // odaya giriş olduğunda sunucudan kullanıcı listesi gelir
   state.room = payload
-  // console.log("odaya bağlanan var")
 })
 
-socket.on("run-game", payload => {
-  console.log("oy kullanildi", payload)
+socket.on("finished-game", payload => {
+  // ortalama hesaplanır
+  let temp = [];
+  payload.users.forEach(item => {
+    if (parseInt(item.idea)) {
+      temp.push(parseInt(item.idea))
+    }
+  })
+  const sum = temp.reduce((a, b) => a + b, 0)
+
+  state.room.status = "finished"
+  state.showCountdown = true
+
+  let countdown = setInterval(() => {
+    state.waiting -= 1
+
+    if (state.waiting < 0) {
+      clearInterval(countdown)
+      state.room = payload
+      state.waiting = 5
+      state.showCountdown = false
+      state.avg = (sum / temp.length) || 0;
+    }
+  }, 1000)
 })
 
 socket.on("disconnect", () => {
@@ -82,27 +127,53 @@ socket.on("disconnect", () => {
 })
 
 const showIdea = idea => {
-  if (state.room.status === "playing") {
-    return "*"
-  } else {
+  if (state.room.status === "finished" && ! state.showCountdown) {
     return idea ?? ":("
+  } else {
+    return ""
+  }
+}
+
+const setCard = (number) => {
+  if (state.room.status === "finished") return false;
+
+  if (state.selectNumber === number) {
+    state.selectNumber = ''
+  } else {
+    state.selectNumber = number
   }
 }
 
 const finishGame = () => {
-  console.log("oyunu bitir")
   socket.emit("end-game", {
     uuid: route.params.uuid
   })
 }
 
 const newGame = () => {
-  console.log("yeni oyun başlat")
-  socket.emit("new-game",{
+  socket.emit("new-game", {
     uuid: route.params.uuid
   })
-  state.selectNumber = null
+  state.selectNumber = ""
 }
+
+const keyboardListener = (event) => {
+  switch (event.key) {
+    case "0": setCard("?"); break;
+    case "1": setCard('1'); break;
+    case "2": setCard('2'); break;
+    case "3": setCard('3'); break;
+    case "4": setCard('5'); break;
+    case "5": setCard('8'); break;
+    case "6": setCard('13'); break;
+    case "7": setCard('21'); break;
+    case "8": setCard('34'); break;
+    case "9": setCard('55'); break;
+    case "q": setCard('89'); break;
+  }
+}
+
+document.addEventListener('keydown', keyboardListener, false);
 
 const mode = computed(() => store.state.mode)
 watch(mode, (mode) => {
@@ -114,25 +185,19 @@ watch(mode, (mode) => {
   }
 })
 
-// const status = computed(() => state.room.status ?? null)
-watch(() => state.room, room => {
-  if (room && room.status === "finished") {
-    console.log(typeof room.users, room.users)
-
-    room.users.map(i => {
-      console.log(i)
-    })
-    // let numbers = [];
-    // room.users.each(i => {
-    //   console.log(i.idea)
-    // })
+watch(() => state.room, (room, oldRoom) => {
+  if (oldRoom.status === 'finished' && room.status === 'playing') {
+    state.selectNumber = ""
   }
 })
 
 watch(() => state.selectNumber, number => {
-  socket.emit("run-game", {
-    uuid: route.params.uuid,
-    idea: number,
-  })
+  if (state.room.status === 'playing') {
+    socket.emit("run-game", {
+      uuid: route.params.uuid,
+      idea: number,
+    })
+  }
 })
+
 </script>

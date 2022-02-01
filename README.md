@@ -1,4 +1,4 @@
-# planing batak
+# Planing Batak
 
 ## Project setup
 ```
@@ -22,3 +22,8 @@ yarn lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+### Socket server start
+```
+node socket.js
+```

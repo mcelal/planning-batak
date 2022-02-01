@@ -6,7 +6,11 @@ const httpServer = createServer();
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:8080", "https://admin.socket.io"],
+    // origin: [
+    //   "http://192.168.1.200",
+    //   "http://localhost:8080",
+    //   "https://admin.socket.io",
+    // ],
     credentials: true,
   },
 });
@@ -15,18 +19,16 @@ instrument(io, {
   auth: false,
 });
 
-// let users = [];
 let rooms = [];
 
 io.on("connect", (socket) => {
   // yeni oyun oluşturulması
   socket.on("create-game", (payload) => {
     const game = {
-      createdBy: socket.id,
       uuid: payload.uuid,
       name: payload.roomName,
-      // selectedNumbers: [],
       users: [],
+      status: "playing",
     };
 
     rooms.push(game);
@@ -41,7 +43,7 @@ io.on("connect", (socket) => {
       id: socket.id,
       room: payload.uuid,
       name: payload.name,
-      idea: null,
+      idea: "",
     };
 
     // Oda oluşturulmamış ise yeni oda oluştur
@@ -58,9 +60,8 @@ io.on("connect", (socket) => {
       room.users.push(user);
     }
 
+    // kullanıcıyı odaya dahil et
     socket.join(payload.uuid);
-
-    // console.log("joining room:", room, room.users);
 
     // odaya kullanıcı listesini gönder
     io.sockets.in(payload.uuid).emit("welcome-room", room);
@@ -68,8 +69,7 @@ io.on("connect", (socket) => {
 
   // oy kullanma
   socket.on("run-game", (payload) => {
-    // const room = rooms.find(i => i.uuid === payload.uuid)
-    console.log(payload);
+    console.log("run-game", payload);
 
     rooms.map((room) => {
       if (room.uuid === payload.uuid) {
@@ -86,14 +86,6 @@ io.on("connect", (socket) => {
 
     const room = rooms.find((room) => room.uuid === payload.uuid);
     io.sockets.in(payload.uuid).emit("welcome-room", room);
-    // console.log("oy-donus", room.users);
-
-    // console.log("oy kullanildi", payload, rooms);
-    // // rooms[payload.uuid]["selectedNumbers"][socket.id] = payload.number;
-    // io.sockets.in(payload.uuid).emit(
-    //   "run-game",
-    //   rooms.filter((room) => room.gameId === payload.uuid)
-    // );
   });
 
   // oylamayı bitir
@@ -101,7 +93,6 @@ io.on("connect", (socket) => {
     rooms.map((room) => {
       if (room.uuid === payload.uuid) {
         room.status = "finished";
-        console.log("finis yapıldı");
         return room;
       }
 
@@ -109,7 +100,7 @@ io.on("connect", (socket) => {
     });
 
     const room = rooms.find((room) => room.uuid === payload.uuid);
-    io.sockets.in(payload.uuid).emit("welcome-room", room);
+    io.sockets.in(payload.uuid).emit("finished-game", room);
 
     console.log("oyunu bitir");
   });
@@ -122,7 +113,7 @@ io.on("connect", (socket) => {
 
         room.users.map((user) => {
           if (user.id === socket.id) {
-            user.idea = null;
+            user.idea = "";
             return user;
           }
         });
@@ -135,8 +126,6 @@ io.on("connect", (socket) => {
 
     const room = rooms.find((room) => room.uuid === payload.uuid);
     io.sockets.in(payload.uuid).emit("welcome-room", room);
-
-    console.log("oyunu bitir");
   });
 });
 
@@ -151,43 +140,6 @@ io.of("/").adapter.on("leave-room", (roomUuid, id) => {
 
     return room;
   });
-
-  // users = users.filter((user) => user.id !== id);
-
-  // io.sockets.in(room).emit("welcome-room", users);
 });
-
-// io.on("connection", (socket) => {
-//   socket.on("create-game", (payload) => {
-//     const game = {
-//       created_by: socket.id,
-//       game_id: payload.uuid,
-//       type: payload.type,
-//       name: payload.roomName,
-//     };
-//
-//     // Oyun bilgilerini geri gönder
-//     socket.emit("game-" + game.game_id, game);
-//     console.log("oyun oluştur");
-//   });
-//
-//   socket.on("join-room", (uuid) => {
-//     const users = [];
-//     for (let [id] of io.of("/").sockets) {
-//       users.push({
-//         userID: id,
-//         username: "kullanici adi" + id,
-//       });
-//     }
-//     socket.join(uuid);
-//
-//     socket.broadcast.in(uuid).emit("users", users);
-//     socket.in(uuid).emit("welcome-room", users);
-//   });
-//
-//   socket.on("disconnecting", () => {
-//     console.log(socket.rooms);
-//   });
-// });
 
 httpServer.listen(3000);
