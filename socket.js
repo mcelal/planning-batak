@@ -1,6 +1,5 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-const { instrument } = require("@socket.io/admin-ui");
 
 const httpServer = createServer();
 
@@ -13,10 +12,6 @@ const io = new Server(httpServer, {
     // ],
     credentials: true,
   },
-});
-
-instrument(io, {
-  auth: false,
 });
 
 let rooms = [];
