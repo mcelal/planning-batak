@@ -71,15 +71,9 @@ import {io} from "socket.io-client";
 import JoinGame from "@/components/JoinGame.vue";
 import PlayingCard from "@/components/PlayingCard.vue";
 
-const url = new URL(location.origin)
-url.port = "3000"
-url.protocol = "ws"
-
-console.log("ws:", url.origin)
-
 const route = useRoute();
 const router = useRouter();
-const socket = io(url.origin)
+const socket = io("/")
 const store = useStore()
 
 const numbers = ['', '?', '1', '2', '3', '5', '8', '13', '21', '34', '55', '89'];

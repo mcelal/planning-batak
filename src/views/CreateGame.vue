@@ -39,13 +39,8 @@ import {useRouter} from "vue-router";
 import {io} from "socket.io-client";
 import {uuid} from "vue-uuid"
 
-const url = new URL(location.origin)
-url.port = "3000"
-url.protocol = "ws"
-console.log("ws:", url.origin)
-
 const router = useRouter()
-const socket = io(url.origin)
+const socket = io("/")
 
 const props = reactive({
   form: {

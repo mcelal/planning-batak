@@ -1,28 +1,14 @@
 const express = require("express");
-const port = process.env.PORT || 8080;
 const app = express();
+const server = require('http').Server(app)
+const io = require('socket.io')(server)
+
+const PORT = process.env.PORT || 8080;
 
 app.use(express.static(__dirname + "/dist/"));
 app.get(/.*/, function(req, res) {
   res.sendFile(__dirname + "/dist/index.html");
 })
-app.listen(port);
-
-const { createServer } = require("http");
-const { Server } = require("socket.io");
-
-const httpServer = createServer();
-
-const io = new Server(httpServer, {
-  cors: {
-    // origin: [
-    //   "http://192.168.1.200",
-    //   "http://localhost:8080",
-    //   "https://admin.socket.io",
-    // ],
-    credentials: true,
-  },
-});
 
 let rooms = [];
 
@@ -148,4 +134,6 @@ io.of("/").adapter.on("leave-room", (roomUuid, id) => {
   });
 });
 
-httpServer.listen(3000);
+server.listen(PORT, () => {
+  console.log("Connected to port: " + PORT)
+});
