@@ -14,11 +14,16 @@
 
         <template v-else>
           <h2 class="my-4 text-4xl font-bold card-title" v-if="state.room.status === 'playing'">Oyun Devam Ediyor !</h2>
-          <h2 class="my-4 text-4xl font-bold card-title" v-if="state.room.status === 'finished' && ! state.showCountdown && state.avg !== 0">Ortalama: {{ state.avg }}</h2>
+          <h2 class="my-4 text-4xl font-bold card-title" v-if="state.room.status === 'finished' && ! state.showCountdown && state.avg !== 0">Ortalama: {{ state.avg.toFixed(2) }}</h2>
 
           <div class="flex flex-row flex-wrap gap-2 justify-center mt-4">
             <div class="text-center" v-for="(people, key) in state.room.users" :key="key" style="width: 120px">
-              <playing-card :number="showIdea(people.idea)"/>
+              <playing-card
+               :number="showIdea(people.idea)"
+               :class="{
+                 'outline outline-white': people.idea > 0
+               }"
+               />
               <p class="font-medium text-lg pt-2">{{ people.name }}</p>
             </div>
           </div>
@@ -49,7 +54,9 @@
           :key="number"
           :number="number.toString()"
           class="play-card"
-          :class="{'play-card-selected': state.selectNumber === number}"
+          :class="{
+            'play-card-selected': state.selectNumber === number,
+            }"
           @click="setCard(number)"
       />
     </div>
@@ -67,7 +74,7 @@ import PlayingCard from "@/components/PlayingCard.vue";
 
 const route = useRoute();
 const router = useRouter();
-const socket = io('192.168.1.200:3000')
+const socket = io('192.168.10.107:3000')
 const store = useStore()
 
 const numbers = ['', '?', '1', '2', '3', '5', '8', '13', '21', '34', '55', '89'];
@@ -93,6 +100,7 @@ socket.on("connect", () => {
 socket.on("welcome-room", payload => {
   // odaya giriş olduğunda sunucudan kullanıcı listesi gelir
   state.room = payload
+  console.log("welcome-room", payload)
 })
 
 socket.on("finished-game", payload => {

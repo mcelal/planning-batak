@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-screen">
-    <div class="m-auto">
+    <div class="mx-auto mt-4">
       <router-view/>
     </div>
   </div>

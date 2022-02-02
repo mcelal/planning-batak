@@ -40,7 +40,7 @@ import {io} from "socket.io-client";
 import {uuid} from "vue-uuid"
 
 const router = useRouter()
-const socket = io('localhost:3000')
+const socket = io('192.168.10.107:3000')
 
 const props = reactive({
   form: {

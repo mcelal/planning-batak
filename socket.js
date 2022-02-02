@@ -32,6 +32,7 @@ io.on("connect", (socket) => {
     };
 
     rooms.push(game);
+    console.log("game-create", game)
   });
 
   // odaya giriş
