@@ -24,7 +24,6 @@
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
-    "@socket.io/admin-ui": "^0.2.0",
     "@tailwindcss/postcss7-compat": "^2.2.17",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
