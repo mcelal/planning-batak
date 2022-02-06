@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cabin&display=swap');
+
+@layer base {
+    body {
+        font-family: 'Cabin', sans-serif, serif;
+    }
+}
+
+.play-card {
+    @apply transition-all hover:opacity-90;
+}
+.play-card-selected {
+    @apply transform -translate-y-3;
+}
+
+.flip-content {
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flip-select {
+    transform: rotateY(180deg);
+    transition: transform 0.5s;
+}

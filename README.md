@@ -1,24 +1,47 @@
-# poker
+# Welcome to Scrum Batak 👋
+[![Twitter: mCelal](https://img.shields.io/twitter/follow/mCelal.svg?style=social)](https://twitter.com/mCelal)
 
-## Project setup
-```
-yarn install
-```
+> Scrum planning game
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+### 🏠 [Homepage](https://github.com/mcelal/planning-batak/)
 
-### Compiles and minifies for production
-```
-yarn build
-```
+### ✨ [Demo](https://planning-batak.herokuapp.com/)
 
-### Lints and fixes files
-```
-yarn lint
+![alt text](ScrumBatak.png)
+
+## Install
+
+```sh
+yarn install && yarn build
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Usage
+
+Start http server with socket
+
+```sh
+node /server/socket.js
+```
+
+## Author
+
+👤 **Mehmet Celal Kara**
+
+* Website: https://www.mcelal.com
+* Twitter: [@mCelal](https://twitter.com/mCelal)
+* Github: [@mcelal](https://github.com/mcelal)
+* LinkedIn: [@mcelal](https://linkedin.com/in/mcelal)
+
+## 🤝 Contributing
+
+Contributions, issues and feature requests are welcome!
+
+Feel free to check [issues page](https://github.com/mcelal/planning-batak/issues). 
+
+## Show your support
+
+Give a ⭐️ if this project helped you!
+
+
+***
+_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
