@@ -1,18 +1,25 @@
 const express = require("express");
 const app = express();
-const server = require('http').Server(app)
-const io = require('socket.io')(server)
+const path = require("path");
+const server = require("http").Server(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: process.env.NODE_ENV === "development" ? "*" : "",
+  },
+});
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
+const staticPath = path.resolve(__dirname + "/../dist/");
 
-app.use(express.static(__dirname + "/dist/"));
-app.get(/.*/, function(req, res) {
-  res.sendFile(__dirname + "/dist/index.html");
-})
+app.use(express.static(staticPath));
+app.get(/.*/, function (req, res) {
+  res.sendFile(staticPath + "/index.html");
+});
 
 let rooms = [];
 
 io.on("connect", (socket) => {
+  console.log("Socket: User connect");
   // yeni oyun oluşturulması
   socket.on("create-game", (payload) => {
     const game = {
@@ -23,7 +30,7 @@ io.on("connect", (socket) => {
     };
 
     rooms.push(game);
-    console.log("game-create", game)
+    console.log("game-create", game);
   });
 
   // odaya giriş
@@ -56,7 +63,7 @@ io.on("connect", (socket) => {
     socket.join(payload.uuid);
 
     // odaya kullanıcı listesini gönder
-    io.sockets.in(payload.uuid).emit("welcome-room", room);
+    io.sockets.in(payload.uuid).emit("room-action", room);
   });
 
   // oy kullanma
@@ -77,7 +84,7 @@ io.on("connect", (socket) => {
     });
 
     const room = rooms.find((room) => room.uuid === payload.uuid);
-    io.sockets.in(payload.uuid).emit("welcome-room", room);
+    io.sockets.in(payload.uuid).emit("room-action", room);
   });
 
   // oylamayı bitir
@@ -117,7 +124,7 @@ io.on("connect", (socket) => {
     });
 
     const room = rooms.find((room) => room.uuid === payload.uuid);
-    io.sockets.in(payload.uuid).emit("welcome-room", room);
+    io.sockets.in(payload.uuid).emit("room-action", room);
   });
 });
 
@@ -132,8 +139,13 @@ io.of("/").adapter.on("leave-room", (roomUuid, id) => {
 
     return room;
   });
+
+  io.sockets.in(roomUuid).emit(
+    "room-action",
+    rooms.find((i) => i.uuid === roomUuid)
+  );
 });
 
 server.listen(PORT, () => {
-  console.log("Connected to port: " + PORT)
+  console.log("Connected to port: " + PORT);
 });
