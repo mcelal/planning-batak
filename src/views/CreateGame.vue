@@ -16,7 +16,7 @@
                 type="text"
                 v-model="props.form.roomName"
                 placeholder="Oda adını giriniz"
-                class="input input-lg"
+                class="input"
                 :class="{'input-error': props.form.roomName.length === 0}"
             >
           </div>

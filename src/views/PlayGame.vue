@@ -44,11 +44,11 @@
       <main class="m-auto">
         <div class="card col-span-1 row-span-3 shadow-lg xl:col-span-2 bg-base-200">
           <div class="card-body">
-            <h2 class="my-4 text-2xl font-bold card-title" v-if="state.room.status === 'playing'">
+            <h2 class="my-4 text-2xl font-bold card-title text-center" v-if="state.room.status === 'playing'">
               Oyun Devam Ediyor !
             </h2>
             <h2
-                class="my-4 text-4xl font-bold card-title"
+                class="my-4 text-4xl font-bold card-title text-center"
                 v-if="state.room.status === 'finished' && ! state.showCountdown && state.avg !== 0"
             >
               Ortalama: {{ state.avg.toFixed(2) }}
@@ -73,14 +73,14 @@
 
             <div class="card-actions justify-center space-x-2">
               <button
-                  class="btn btn-primary btn-lg"
+                  class="btn btn-primary"
                   @click="finishGame"
                   v-if="! state.showCountdown && state.room.status === 'playing'"
               >
                 Bitir
               </button>
               <button
-                  class="btn btn-primary btn-lg"
+                  class="btn btn-primary"
                   @click="newGame"
                   v-if="! state.showCountdown && state.room.status === 'finished'"
               >
