@@ -1,0 +1,17 @@
+{
+  "name": "planning-batak-socket",
+  "version": "1.0.0",
+  "description": "Planning Batak App socket server",
+  "main": "server.js",
+  "repository": "https://github.com/mcelal/planning-batak",
+  "author": "info@mcelal.com",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "ip": "^1.1.8",
+    "socket.io": "^4.6.1"
+  }
+}
