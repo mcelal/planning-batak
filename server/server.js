@@ -23,7 +23,7 @@ const prepareOrigins = () => {
 const origins = prepareOrigins();
 const io = new Server({
     cors: {
-        origin: origins
+        origin: process.env.ORIGINS
     },
 });
 
