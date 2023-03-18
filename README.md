@@ -5,22 +5,44 @@
 
 ### 🏠 [Homepage](https://github.com/mcelal/planning-batak/)
 
-### ✨ [Demo](https://planning-batak.herokuapp.com/)
+### ✨ [Demo](https://batak.mcelal.dev/)
 
 ![alt text](ScrumBatak.png)
 
-## Install
+## Installation
+
+Install Front-End
 
 ```sh
-yarn install && yarn build
+yarn install
+```
+
+Install SocketIO Server
+
+```sh
+cd /server
+yarn install
+```
+
+Change .env files
+```
+cp .env-example .env
+cd /server
+cp .env-example .env
 ```
 
 ## Usage
 
-Start http server with socket
+Start Vue project
 
 ```sh
-node /server/socket.js
+yarn run serve
+```
+
+Start SockerIO server
+```
+cd /server
+node server.js
 ```
 
 ## Author
