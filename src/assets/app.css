@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cabin&display=swap');
-
 @layer base {
     body {
         font-family: 'Cabin', sans-serif, serif;

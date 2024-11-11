@@ -6,13 +6,9 @@ import "./assets/app.css";
 import io from "socket.io-client";
 
 const socket = io(
-  process.env.NODE_ENV === "development"
-    ? process.env.VUE_APP_DEV_SOCKET
-    : process.env.VUE_APP_PROD_SOCKET
+  import.meta.env.DEV
+    ? import.meta.env.VITE_DEV_SOCKET
+    : import.meta.env.VITE_PROD_SOCKET,
 );
 
-const app = createApp(App);
-app.use(store);
-app.use(router);
-app.provide("socket", socket);
-app.mount("#app");
+createApp(App).use(store).use(router).provide("socket", socket).mount("#app");

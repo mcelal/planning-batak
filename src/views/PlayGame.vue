@@ -110,8 +110,8 @@
 import {computed, inject, reactive, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {useStore} from "vuex";
-import JoinGame from "@/components/JoinGame.vue";
-import PlayingCard from "@/components/PlayingCard.vue";
+import JoinGame from "../components/JoinGame.vue";
+import PlayingCard from "../components/PlayingCard.vue";
 
 const route = useRoute();
 const router = useRouter();
