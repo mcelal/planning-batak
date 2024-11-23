@@ -14,6 +14,11 @@ const routes = [
     component: () => import("../views/CreateGame.vue"),
   },
   {
+    path: "/join-game/:uuid",
+    name: "JoinGame",
+    component: () => import("../views/JoinGame.vue"),
+  },
+  {
     path: "/play-game/:uuid",
     name: "PlayGame",
     component: () => import("../views/PlayGame.vue"),

@@ -17,17 +17,8 @@ Install Front-End
 yarn install
 ```
 
-Install SocketIO Server
-
-```sh
-cd /server
-yarn install
-```
-
 Change .env files
 ```
-cp .env-example .env
-cd /server
 cp .env-example .env
 ```
 
@@ -36,13 +27,7 @@ cp .env-example .env
 Start Vue project
 
 ```sh
-yarn run serve
-```
-
-Start SockerIO server
-```
-cd /server
-node server.js
+yarn run dev
 ```
 
 ## Author

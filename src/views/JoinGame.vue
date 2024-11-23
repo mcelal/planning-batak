@@ -22,23 +22,39 @@
 </template>
 
 <script setup>
-import { reactive } from "vue";
+import { onBeforeMount, reactive } from "vue";
 import { useStore } from "vuex";
+import { useRoute, useRouter } from "vue-router";
+import { supabase } from "../lib/supabaseClient";
 
 const store = useStore();
-
+const route = useRoute();
+const router = useRouter();
 const state = reactive({
-  userName: "",
+  userName: localStorage.getItem("planning-batak-username") ?? "",
 });
 
-const oldName = localStorage.getItem("planning-batak-username");
-if (oldName) {
-  state.userName = oldName;
-}
+const getGame = async () => {
+  const { data, error } = await supabase
+    .from("games")
+    .select("*")
+    .eq("id", route.params.uuid);
+
+  if (!data || error) {
+    await router.push({ name: "CreateGame" });
+  }
+};
+
+onBeforeMount(() => {
+  getGame();
+});
 
 const play = () => {
-  store.commit("joinGame", state.userName);
-  store.commit("setUserName", state.userName);
+  store.commit("joinGame", {
+    gameUUID: route.params.uuid,
+    userName: state.userName,
+  });
   localStorage.setItem("planning-batak-username", state.userName);
+  router.push({ name: "PlayGame", params: { uuid: route.params.uuid } });
 };
 </script>

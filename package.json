@@ -6,11 +6,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "postinstall": "npm run build",
-    "start": "node ./server/socket.js"
+    "postinstall": "npm run build"
   },
   "dependencies": {
-    "socket.io-client": "^4.8.1",
+    "@supabase/supabase-js": "^2.46.1",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5",
     "vue-uuid": "^3.0.0",
