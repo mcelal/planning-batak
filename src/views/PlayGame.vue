@@ -247,6 +247,10 @@ const channel = supabase
         name: newPresences[0].name,
         idea: null,
       };
+
+      if (state.myKey !== key) {
+        toast(newPresences[0].name + " katıldı.");
+      }
     }
   })
   .on("presence", { event: "leave" }, ({ key }) => {
@@ -306,6 +310,22 @@ supabase
     },
   )
   .subscribe();
+
+const toast = (message) => {
+  const toast = document.createElement("div");
+  toast.className = "toast toast-top toast-right";
+
+  const alert = document.createElement("div");
+  alert.className = "alert alert-success";
+  alert.innerHTML = "<span>" + message + "</span>";
+
+  toast.appendChild(alert);
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    document.body.removeChild(toast);
+  }, 2000);
+};
 
 const shareURL = () => {
   navigator.clipboard.writeText(window.location.href);
