@@ -78,9 +78,7 @@ const createGame = async () => {
   const { error } = await supabase.from("games").insert({
     id: props.form.uuid,
     name: props.form.roomName,
-    detail: {
-      status: "playing",
-    },
+    status: "playing",
   });
 
   if (error) {
