@@ -4,9 +4,7 @@
       <div
         class="flex flex-wrap justify-between navbar mb-2 shadow-lg bg-neutral text-neutral-content rounded-box self-start"
       >
-        <div class="pl-2 text-lg font-bold">
-          {{ state.gameData?.name }}
-        </div>
+        <div class="pl-2 text-lg font-bold">{{ state.room.name }}</div>
         <div class="overflow-hidden">
           <button
             data-tooltip-target="tooltip-copy"
@@ -162,10 +160,10 @@ const store = useStore();
 
 onBeforeMount(async () => {
   await checkUser();
-  state.gameData = await getGame();
+  await getGame();
 });
 
-const defaultWaiting = 1;
+const defaultWaiting = 0;
 const numbers = [
   "",
   "0",
@@ -195,21 +193,28 @@ const checkUser = async () => {
 const getGame = async () => {
   const { data, error } = await supabase
     .from("games")
-    .select("*")
+    .select(`*, ideas(user, idea)`)
     .eq("id", route.params.uuid)
-    .limit(1)
     .maybeSingle();
 
   if (!data || error) {
     await router.push({ name: "CreateGame" });
   }
 
-  return data;
+  state.room.name = data.name;
+  state.room.status = data.status;
+
+  data.ideas?.forEach((idea) => {
+    if (state.room.users?.[idea.user] !== undefined) {
+      state.room.users[idea.user].idea = idea.idea;
+    }
+  });
 };
 
 const state = reactive({
   room: {
     uuid: route.params.uuid,
+    name: "",
     users: {},
     status: "playing",
     gameScore: 0,
@@ -217,7 +222,6 @@ const state = reactive({
   waiting: defaultWaiting,
   showCountdown: false,
   myKey: "user-" + uuid.v1(),
-  gameData: null,
 });
 
 const channel = supabase
@@ -232,40 +236,27 @@ const channel = supabase
       },
     },
   })
-  .on("broadcast", { event: "finished-game" }, async () => {
-    state.room.status = "finished";
-    state.showCountdown = true;
-
-    let countdown = setInterval(() => {
-      state.waiting -= 1;
-
-      if (state.waiting < 0) {
-        clearInterval(countdown);
-        state.waiting = defaultWaiting;
-        state.showCountdown = false;
-        state.room.gameScore = gameScore.value;
-      }
-    }, 1000);
-  })
-  .on("broadcast", { event: "new-game" }, async () => {
-    state.room.status = "playing";
-    Object.values(state.room.users).forEach((user) => {
-      state.room.users[user.key].idea = null;
-    });
-  })
   .on("presence", { event: "join" }, async ({ key, newPresences }) => {
-    if (newPresences[0].name) {
+    if (!newPresences[0].name) {
+      return;
+    }
+
+    if (state.room.users[key] === undefined) {
       state.room.users[key] = {
         key: key,
         name: newPresences[0].name,
         idea: null,
       };
 
-      await getUserIdeas();
+      if (state.myKey !== key) {
+        toast(newPresences[0].name + " katıldı.");
+      }
     }
   })
   .on("presence", { event: "leave" }, ({ key }) => {
-    delete state.room.users[key];
+    if (state.room.users[key]) {
+      delete state.room.users[key];
+    }
   })
   .subscribe(async (status) => {
     if (status !== "SUBSCRIBED") {
@@ -280,7 +271,25 @@ const channel = supabase
   });
 
 supabase
-  .channel("update-game-row")
+  .channel("update-game-ideas")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "ideas",
+      filter: "game=eq." + state.room.uuid,
+    },
+    (payload) => {
+      if (state.room.users[payload.new.user] !== undefined) {
+        state.room.users[payload.new.user].idea = payload.new.idea;
+      }
+    },
+  )
+  .subscribe();
+
+supabase
+  .channel("update-game")
   .on(
     "postgres_changes",
     {
@@ -290,31 +299,78 @@ supabase
       filter: "id=eq." + state.room.uuid,
     },
     (payload) => {
-      payload.new.detail.usersIdeas.forEach((user) => {
-        if (state.room.users[Object.keys(user)[0]] !== undefined) {
-          state.room.users[Object.keys(user)[0]].idea = Object.values(user)[0];
-        }
-      });
+      switch (payload.new.status) {
+        case "playing":
+          handleNewGame();
+          break;
+        case "finished":
+          handleFinishGame();
+          break;
+      }
     },
   )
   .subscribe();
+
+const toast = (message) => {
+  const toast = document.createElement("div");
+  toast.className = "toast toast-top toast-right";
+
+  const alert = document.createElement("div");
+  alert.className = "alert alert-success";
+  alert.innerHTML = "<span>" + message + "</span>";
+
+  toast.appendChild(alert);
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    document.body.removeChild(toast);
+  }, 2000);
+};
 
 const shareURL = () => {
   navigator.clipboard.writeText(window.location.href);
 };
 
-const newGame = () => {
-  channel.send({
-    type: "broadcast",
-    event: "new-game",
+const newGame = async () => {
+  await supabase
+    .from("games")
+    .update({
+      status: "playing",
+    })
+    .eq("id", route.params.uuid);
+};
+
+const handleNewGame = () => {
+  state.room.status = "playing";
+
+  Object.values(state.room.users).forEach((user) => {
+    state.room.users[user.key].idea = null;
   });
 };
 
-const finishGame = () => {
-  channel.send({
-    type: "broadcast",
-    event: "finished-game",
-  });
+const finishGame = async () => {
+  await supabase
+    .from("games")
+    .update({
+      status: "finished",
+    })
+    .eq("id", route.params.uuid);
+};
+
+const handleFinishGame = () => {
+  state.room.status = "finished";
+  state.showCountdown = true;
+
+  let countdown = setInterval(() => {
+    state.waiting -= 1;
+
+    if (state.waiting < 0) {
+      clearInterval(countdown);
+      state.waiting = defaultWaiting;
+      state.showCountdown = false;
+      state.room.gameScore = gameScore.value;
+    }
+  }, 1000);
 };
 
 const showIdea = (idea) => {
@@ -328,35 +384,17 @@ const showIdea = (idea) => {
 const setCard = async (number) => {
   if (state.room.status === "finished") return false;
 
-  state.room.users[state.myKey].idea =
-    selectNumber.value === number ? "" : number;
+  const idea = selectNumber.value === number ? "" : number;
 
-  const userIdeas = Object.values(state.room.users).map((user) => {
-    return {
-      [user.key]: user.idea,
-    };
-  });
-
-  await supabase
-    .from("games")
-    .update({
-      detail: {
-        usersIdeas: userIdeas,
-      },
-    })
-    .eq("id", state.room.uuid);
-};
-
-const getUserIdeas = async () => {
-  const { detail } = await getGame();
-
-  if (!detail.usersIdeas) return;
-
-  Object.entries(detail.usersIdeas).forEach(([userKey, idea]) => {
-    if (state.room.users[userKey] !== undefined) {
-      state.room.users[userKey].idea = idea;
-    }
-  });
+  await supabase.from("ideas").upsert(
+    {
+      key: state.room.uuid + state.myKey,
+      game: state.room.uuid,
+      user: state.myKey,
+      idea: idea,
+    },
+    { onConflict: "key" },
+  );
 };
 
 const selectNumber = computed(() => {

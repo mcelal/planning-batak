@@ -49,12 +49,13 @@ onBeforeMount(() => {
   getGame();
 });
 
-const play = () => {
+const play = async () => {
   store.commit("joinGame", {
     gameUUID: route.params.uuid,
     userName: state.userName,
   });
   localStorage.setItem("planning-batak-username", state.userName);
-  router.push({ name: "PlayGame", params: { uuid: route.params.uuid } });
+
+  await router.push({ name: "PlayGame", params: { uuid: route.params.uuid } });
 };
 </script>
