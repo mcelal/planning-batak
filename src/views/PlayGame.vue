@@ -1,5 +1,79 @@
 <template>
-  <div class="flex flex-col h-screen">
+  <div class="flex flex-col h-screen relative">
+    <!-- Pide Yağmuru Efekti -->
+    <div v-if="showPideEffect" class="pide-container">
+      <div
+        v-for="(pide, index) in pides"
+        :key="index"
+        class="pide"
+        :style="{
+          left: `${pide.x}%`,
+          top: `${pide.y}%`,
+          transform: `rotate(${pide.rotate}deg) scale(${pide.scale})`,
+          animationDuration: `${pide.duration}s`,
+          animationDelay: `${pide.delay}s`,
+          opacity: pide.opacity,
+        }"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 100 50"
+          width="40"
+          height="20"
+        >
+          <ellipse cx="50" cy="25" rx="45" ry="20" fill="#e6c080" />
+          <ellipse cx="50" cy="25" rx="40" ry="15" fill="#d4a76a" />
+          <line
+            x1="30"
+            y1="15"
+            x2="70"
+            y2="15"
+            stroke="#9c7248"
+            stroke-width="1"
+          />
+          <line
+            x1="25"
+            y1="20"
+            x2="75"
+            y2="20"
+            stroke="#9c7248"
+            stroke-width="1"
+          />
+          <line
+            x1="20"
+            y1="25"
+            x2="80"
+            y2="25"
+            stroke="#9c7248"
+            stroke-width="1"
+          />
+          <line
+            x1="25"
+            y1="30"
+            x2="75"
+            y2="30"
+            stroke="#9c7248"
+            stroke-width="1"
+          />
+          <line
+            x1="30"
+            y1="35"
+            x2="70"
+            y2="35"
+            stroke="#9c7248"
+            stroke-width="1"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <div v-if="showPideEffect" class="iftar-message">
+      <div class="alert alert-success shadow-lg">
+        <span>İftar Vakti! Hayırlı iftarlar...</span>
+      </div>
+    </div>
+
+    <!-- Orijinal İçerik Buradan Devam Ediyor -->
     <header class="p-10">
       <div
         class="flex flex-wrap justify-between navbar mb-2 shadow-lg bg-neutral text-neutral-content rounded-box self-start"
@@ -147,7 +221,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, reactive } from "vue";
+import { computed, onBeforeMount, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import PlayingCard from "../components/PlayingCard.vue";
@@ -157,6 +231,16 @@ import { uuid } from "vue-uuid";
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
+
+// Pide yağmuru için değişkenler
+const showPideEffect = ref(false);
+const pides = ref([]);
+const PIDE_COUNT = 30; // Ekranda aynı anda olacak pide sayısı
+
+// Pide yağmuru efektini oluşturulan bileşen yüklendiğinde başlat
+onMounted(() => {
+  createPides();
+});
 
 onBeforeMount(async () => {
   await checkUser();
@@ -179,6 +263,41 @@ const numbers = [
   "89",
   "?",
 ];
+
+// Pideleri oluştur
+const createPides = () => {
+  pides.value = [];
+  for (let i = 0; i < PIDE_COUNT; i++) {
+    addPide();
+  }
+
+  // Sürekli olarak pideleri güncelleyen zamanlayıcı
+  setInterval(() => {
+    // Rastgele bir pideyi yeniden konumlandır
+    if (showPideEffect.value) {
+      const index = Math.floor(Math.random() * PIDE_COUNT);
+      pides.value[index] = createRandomPide();
+    }
+  }, 500);
+};
+
+// Rastgele pide özellikleri oluştur
+const createRandomPide = () => {
+  return {
+    x: Math.random() * 100, // Ekranın yatay konumu
+    y: -10, // Ekranın üstünden başla
+    rotate: Math.random() * 360, // Rastgele dönüş açısı
+    scale: 0.5 + Math.random() * 1.5, // Rastgele boyut
+    duration: 5 + Math.random() * 10, // Düşme süresi
+    delay: Math.random() * 5, // Başlama gecikmesi
+    opacity: 0.6 + Math.random() * 0.4, // Rastgele opaklık
+  };
+};
+
+// Yeni bir pide ekle
+const addPide = () => {
+  pides.value.push(createRandomPide());
+};
 
 const checkUser = async () => {
   const userName = await store.getters.getUserName;
@@ -346,6 +465,8 @@ const handleNewGame = () => {
   Object.values(state.room.users).forEach((user) => {
     state.room.users[user.key].idea = null;
   });
+
+  showPideEffect.value = false;
 };
 
 const finishGame = async () => {
@@ -371,6 +492,10 @@ const handleFinishGame = () => {
       state.room.gameScore = gameScore.value;
     }
   }, 1000);
+
+  if (gameScore.value >= 5) {
+    showPideEffect.value = true;
+  }
 };
 
 const showIdea = (idea) => {
@@ -452,3 +577,69 @@ const keyboardListener = (event) => {
 };
 document.addEventListener("keydown", keyboardListener, false);
 </script>
+
+<style>
+/* Pide animasyonu için stiller */
+.pide-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none; /* Pidelerin tıklanabilir olmasını engelle */
+  z-index: 10;
+  overflow: hidden;
+}
+
+.pide {
+  position: absolute;
+  animation-name: fallDown;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fallDown {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+/* İftar bildirimi stili */
+.iftar-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  animation: fadeInOut 5s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+/* Ramazan teması için özel renkler (isteğe bağlı) */
+.ramazan-theme {
+  --primary: #c14953; /* Ramazan kırmızısı */
+  --secondary: #5b8e7d; /* Yeşil tonları */
+  --accent: #f4b860; /* Altın sarısı */
+}
+</style>
